@@ -88,7 +88,7 @@ public class EMF_Query{
             String [] aggregate_func;
             String [] grouping_var_range;
         	}
-        File file = new File("sampleInput.txt");
+        File file = new File("sampleQuery.txt");
         Scanner input = new Scanner(file);
 
         //Query process
