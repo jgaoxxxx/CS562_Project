@@ -5,7 +5,7 @@ import java.util.*;
 import java.io.*;
 
 public class EMF_Query{
-	String usr ="jiangao";
+    String usr ="jiangao";
     String pwd ="";
     String url ="jdbc:postgresql://localhost:5432/sales";
 
