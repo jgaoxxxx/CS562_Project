@@ -87,7 +87,7 @@ public class EMF_Query{
             String [] grouping_attr;
             String [] aggregate_func;
             String [] grouping_var_range;
-        	}
+       	}
         File file = new File("sampleQuery.txt");
         Scanner input = new Scanner(file);
 
@@ -109,7 +109,7 @@ public class EMF_Query{
         String line="";
         while(input.hasNext()){
             line+=input.nextLine();
-            }
+        }
         query_struct.grouping_var_range = line.split(",");
 
 
@@ -120,8 +120,8 @@ public class EMF_Query{
       	  	    Structure mf_item = new Structure(db_item.type, db_item.variable_name);
                     mf_struct_list.add(mf_item);
                     break;
-                    }
                 }
+            }
         }
 
         //parsing aggregate functions			Split aggregate functions: 1_sum_quant to 1 sum quant
