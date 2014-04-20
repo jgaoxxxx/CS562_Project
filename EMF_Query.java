@@ -14,19 +14,19 @@ public class EMF_Query{
         String variable_name;
         Structure (){}
         Structure (String t, String v){
-        	type = t;
-        	variable_name = v;
+        type = t;
+        variable_name = v;
         }
     }
 
     public class Aggr_func {  //aggregate functions   ex:1_sum_quant
-    	int index;			  //					  1
+    	int index;		  //					  1
     	String aggr_attr;	  //					  quant
     	String aggr_func;	  //					  sum
     	String type;		  //					  int
     }
-    public class Condition {   //select condition     ex:1.state=’NY’
-    	int index;			   //					  1
+    public class Condition {   //select condition     ex:1.state='NY'
+    	int index;		   //					  1
     	String left;		   //					  state
     	String type;		   //					  String
     	String operator;	   //					  =
@@ -38,13 +38,13 @@ public class EMF_Query{
 	ArrayList<Aggr_func> aggr_func_list =  new ArrayList<Aggr_func>(); // list store aggregate functions info
 	ArrayList<Condition> condition_list = new ArrayList<Condition>();  // list store select condition info
 
-	public static void main(String[] args){
-		EMF_Query eMF_Query = new EMF_Query();
-		eMF_Query.dbconnect();
-		eMF_Query.getDB_struct();
-		eMF_Query.readFile();
-		eMF_Query.output();
-	}
+    public static void main(String[] args){
+	EMF_Query eMF_Query = new EMF_Query();
+	eMF_Query.dbconnect();
+	eMF_Query.getDB_struct();
+	eMF_Query.readFile();
+	eMF_Query.output();
+    }
 
     void dbconnect(){
         try {
@@ -57,9 +57,9 @@ public class EMF_Query{
     }
     void getDB_struct(){
     	try {
-        Connection con = DriverManager.getConnection(url, usr, pwd);    //connect to the database using the password and username
+        Connection con = DriverManager.getConnection(url, usr, pwd);		//connect to the database using the password and username
         System.out.println("Success connecting server!\n");
-        Statement st = con.createStatement();   //statement created to execute the query
+        Statement st = con.createStatement();		//statement created to execute the query
         /*connect to information schema to get variable type*/
         ResultSet rs_type;                    //resultset object gets the set of values retreived from the database
         String query_type = "SELECT data_type,column_name from information_schema.\"columns\" WHERE \"table_name\"='sales' ";
@@ -79,7 +79,7 @@ public class EMF_Query{
         }
     }
 
-	void readFile(){
+    void readFile(){
         try{
         class Query_struct{
             String [] select_attr;
@@ -115,32 +115,32 @@ public class EMF_Query{
 
         //parsing grouping attributes          find type of grouping attribute and add to mf_structure
         for (String str : query_struct.grouping_attr){
-        	for (Structure db_item : db_struct_list){
-        		if (db_item.variable_name.equals(str)){
-        			Structure mf_item = new Structure(db_item.type, db_item.variable_name);
-        			mf_struct_list.add(mf_item);
-        			break;
-        		}
-        	}
+            for (Structure db_item : db_struct_list){
+       		if (db_item.variable_name.equals(str)){
+      	  	    Structure mf_item = new Structure(db_item.type, db_item.variable_name);
+                    mf_struct_list.add(mf_item);
+                    break;
+                    }
+                }
         }
 
         //parsing aggregate functions			Split aggregate functions: 1_sum_quant to 1 sum quant
-        //										then add to mf_structure list and aggregate functions list
+        //						then add to mf_structure list and aggregate functions list
         for (String str : query_struct.aggregate_func){
-        	String [] s = str.split("_");
-        	Aggr_func aggr_item = new Aggr_func();
-        	aggr_item.index = Integer.parseInt(s[0]);
-       		aggr_item.aggr_func = s[1];
-     		aggr_item.aggr_attr = s[2];
-        	for (Structure db_item : db_struct_list){
-        		if (db_item.variable_name.equals(aggr_item.aggr_attr)){
-        			aggr_item.type = db_item.type;
-        		}
+            String [] s = str.split("_");
+            Aggr_func aggr_item = new Aggr_func();
+            aggr_item.index = Integer.parseInt(s[0]);
+       	    aggr_item.aggr_func = s[1];
+     	    aggr_item.aggr_attr = s[2];
+            for (Structure db_item : db_struct_list){
+        	if (db_item.variable_name.equals(aggr_item.aggr_attr)){
+       	   	    aggr_item.type = db_item.type;
         	}
-        	aggr_func_list.add(aggr_item);
+            }
+            aggr_func_list.add(aggr_item);
 
-        	Structure mf_item = new Structure(aggr_item.type, s[1]+"_"+s[2]+"_"+s[0]);
-        	mf_struct_list.add(mf_item);
+            Structure mf_item = new Structure(aggr_item.type, s[1]+"_"+s[2]+"_"+s[0]);
+            mf_struct_list.add(mf_item);
         }
 
         }catch(Exception e){
@@ -157,11 +157,8 @@ public class EMF_Query{
 
         System.out.println("public class MF_STRUCT {");
         for (Structure i : mf_struct_list){
-        	System.out.printf("\t"+i.type+"\t"+i.variable_name+";"+"\n");
+            System.out.printf("\t"+i.type+"\t"+i.variable_name+";"+"\n");
         }
         System.out.println("}");
     }
-
-
-
 }
