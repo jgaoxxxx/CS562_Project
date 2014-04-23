@@ -47,11 +47,11 @@ public class EMF_Query{
     	String right;		   //					   NY
     }
 
-	ArrayList<Structure> db_struct_list = new ArrayList<Structure>();  // list store information get from database
-	ArrayList<Structure> mf_struct_list = new ArrayList<Structure>();  // list store mf_structure information
-    	ArrayList<Structure> group_attr_list = new ArrayList<Structure>(); // list store grouping attributes info
-	ArrayList<Aggr_func> aggr_func_list =  new ArrayList<Aggr_func>(); // list store aggregate functions info
-	ArrayList<Condition> condition_list = new ArrayList<Condition>();  // list store select condition info
+    ArrayList<Structure> db_struct_list = new ArrayList<Structure>();  // list store information get from database
+    ArrayList<Structure> mf_struct_list = new ArrayList<Structure>();  // list store mf_structure information
+    ArrayList<Structure> group_attr_list = new ArrayList<Structure>(); // list store grouping attributes info
+    ArrayList<Aggr_func> aggr_func_list =  new ArrayList<Aggr_func>(); // list store aggregate functions info
+    ArrayList<Condition> condition_list = new ArrayList<Condition>();  // list store select condition info
 
     public static void main(String[] args){
 	EMF_Query eMF_Query = new EMF_Query();
