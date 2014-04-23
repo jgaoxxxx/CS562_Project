@@ -1,12 +1,7 @@
-SELECT ATTRIBUTE(S):
-cust,1_avg_quant,2_max_quant,3_sum_quant
-NUMBER OF GROUPING VARIABLES(n):
+cust,1_avg_quant,2_max_quant,2_month,3_sum_quant
 3
-GROUPING ATTRIBUTES(V):
-cust,prod
-F-VECT([F]):
-1_avg_quant,2_max_quant,3_sum_quant,4_min_quant
-SELECT CONDITION-VECT([σ]):
+cust
+1_avg_quant,2_max_quant,3_sum_quant,avg_quant
 1.state='NY',
 2.state='NJ',
 3.state='CT'

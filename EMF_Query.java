@@ -2,6 +2,7 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.*;
 import java.io.*;
 
 public class EMF_Query{
@@ -13,37 +14,51 @@ public class EMF_Query{
         String type;
         String variable_name;
         Structure (){}
-        Structure (String t, String v){
-        type = t;
-        variable_name = v;
+        Structure (String type, String variable_name){
+            this.type = type;
+            this.variable_name = variable_name;
+        }
+        void output (){
+            System.out.printf(type+"\t"+variable_name+"\n");
         }
     }
 
-    public class Aggr_func {  //aggregate functions   ex:1_sum_quant
-    	int index;		  //					  1
-    	String aggr_attr;	  //					  quant
-    	String aggr_func;	  //					  sum
-    	String type;		  //					  int
+    public class Aggr_func {   //aggregate functions   ex:1_sum_quant
+    	int index;		       //					   1
+    	String aggr_attr;	   //					   quant
+    	String aggr_func;	   //					   sum
+    	String type;		   //					   int
+        Aggr_func (){}
+        Aggr_func (int index, String aggr_attr, String aggr_func, String type){
+            this.index = index;
+            this.aggr_attr = aggr_attr;
+            this.aggr_func = aggr_func;
+            this.type = type;
+        }
+        void output (){
+            System.out.printf(index+"  "+aggr_attr+"  "+aggr_func+"  "+type+"\n");
+        }
     }
-    public class Condition {   //select condition     ex:1.state='NY'
-    	int index;		   //					  1
-    	String left;		   //					  state
-    	String type;		   //					  String
-    	String operator;	   //					  =
-    	String right;		   //					  NY
+    public class Condition {   //select condition      ex:1.state='NY'
+    	int index;		       //					   1
+    	String left;		   //					   state
+    	String type;		   //					   String
+    	String operator;	   //					   =
+    	String right;		   //					   NY
     }
 
 	ArrayList<Structure> db_struct_list = new ArrayList<Structure>();  // list store information get from database
 	ArrayList<Structure> mf_struct_list = new ArrayList<Structure>();  // list store mf_structure information
+    ArrayList<Structure> group_attr_list = new ArrayList<Structure>(); // list store grouping attributes info
 	ArrayList<Aggr_func> aggr_func_list =  new ArrayList<Aggr_func>(); // list store aggregate functions info
 	ArrayList<Condition> condition_list = new ArrayList<Condition>();  // list store select condition info
 
     public static void main(String[] args){
-	EMF_Query eMF_Query = new EMF_Query();
-	eMF_Query.dbconnect();
-	eMF_Query.getDB_struct();
-	eMF_Query.readFile();
-	eMF_Query.output();
+	    EMF_Query eMF_Query = new EMF_Query();
+	    eMF_Query.dbconnect();
+ 	    eMF_Query.getDB_struct();
+	    eMF_Query.readFile();
+	    eMF_Query.output();
     }
 
     void dbconnect(){
@@ -79,7 +94,7 @@ public class EMF_Query{
         }
     }
 
-    void readFile(){
+    void readFile(){ 
         try{
         class Query_struct{
             String [] select_attr;
@@ -93,54 +108,95 @@ public class EMF_Query{
 
         //Query process
         Query_struct query_struct = new Query_struct();
-        input.nextLine();
         query_struct.select_attr = input.nextLine().split(",");
-        
-        input.nextLine();
         query_struct.num_grouping_var = Integer.parseInt(input.nextLine());
-        
-      	input.nextLine();
         query_struct.grouping_attr = input.nextLine().split(",");
-            
-        input.nextLine();
         query_struct.aggregate_func = input.nextLine().split(",");
-          
-        input.nextLine();
         String line="";
         while(input.hasNext()){
             line+=input.nextLine();
         }
         query_struct.grouping_var_range = line.split(",");
 
-
-        //parsing grouping attributes          find type of grouping attribute and add to mf_structure
-        for (String str : query_struct.grouping_attr){
-            for (Structure db_item : db_struct_list){
-       		if (db_item.variable_name.equals(str)){
-      	  	    Structure mf_item = new Structure(db_item.type, db_item.variable_name);
-                    mf_struct_list.add(mf_item);
-                    break;
+        //parsing select attributes
+        for (String str : query_struct.select_attr){
+            //count the number of "_", to make sure the attribute type
+            int count=0;
+            for(int i=0;i<str.length();i++){
+                if(str.charAt(i)== '_'){
+                    count++;
+                }
+            }
+            if (count == 0){   // attributes like cust, prod
+                for (Structure temp : db_struct_list){
+                    if (temp.variable_name.equals(str)){
+                        Structure mf_item = new Structure(temp.type, temp.variable_name);
+                        mf_struct_list.add(mf_item);
+                        break;
+                    }
+                }
+            }
+            if (count == 1){   //attributes like 1_month, avg_month
+                String [] s = str.split("_");
+                for (Structure temp : db_struct_list){
+                    if (temp.variable_name.equals(s[1])){
+                        Structure mf_item = new Structure(temp.type, s[1]+"_"+s[0]);
+                        mf_struct_list.add(mf_item);
+                        break;
+                    }
+                }
+            }
+            if (count == 2){   //attributes like 1_avg_quant, 2_sum_quant
+                String [] s = str.split("_");
+                for (Structure temp : db_struct_list){
+                    if (temp.variable_name.equals(s[2])){
+                        Structure mf_item = new Structure(temp.type, s[2]+"_"+s[0]+"_"+s[1]);
+                        mf_struct_list.add(mf_item);
+                        break;
+                    }
                 }
             }
         }
 
-        //parsing aggregate functions			Split aggregate functions: 1_sum_quant to 1 sum quant
-        //						then add to mf_structure list and aggregate functions list
-        for (String str : query_struct.aggregate_func){
-            String [] s = str.split("_");
-            Aggr_func aggr_item = new Aggr_func();
-            aggr_item.index = Integer.parseInt(s[0]);
-       	    aggr_item.aggr_func = s[1];
-     	    aggr_item.aggr_attr = s[2];
-            for (Structure db_item : db_struct_list){
-        	if (db_item.variable_name.equals(aggr_item.aggr_attr)){
-       	   	    aggr_item.type = db_item.type;
-        	}
-            }
-            aggr_func_list.add(aggr_item);
 
-            Structure mf_item = new Structure(aggr_item.type, s[1]+"_"+s[2]+"_"+s[0]);
-            mf_struct_list.add(mf_item);
+        //parsing grouping attributes
+        for (String str : query_struct.grouping_attr){
+            for (Structure temp : db_struct_list){
+       		if (temp.variable_name.equals(str)){
+      	  	    Structure new_group_attr = new Structure(temp.type, temp.variable_name);
+                    group_attr_list.add(new_group_attr);
+                    break;
+                }
+            }
+        }
+        //parsing aggregate functions
+        for (String str : query_struct.aggregate_func){
+            int count=0;
+            for(int i=0;i<str.length();i++){
+                if(str.charAt(i)== '_'){
+                    count++;
+                }
+            }
+            if (count == 1){   //attributes like avg_month
+                String [] s = str.split("_");
+                for (Structure temp : db_struct_list){
+                    if (temp.variable_name.equals(s[1])){
+                        Aggr_func new_aggr = new Aggr_func(0, s[1], s[0], temp.type);
+                        aggr_func_list.add(new_aggr);
+                        break;
+                    }
+                }
+            }
+            if (count == 2){   //attributes like 1_avg_quant, 2_sum_quant
+                String [] s = str.split("_");
+                for (Structure temp : db_struct_list){
+                    if (temp.variable_name.equals(s[2])){
+                        Aggr_func new_aggr = new Aggr_func(Integer.parseInt(s[0]), s[2], s[1], temp.type);
+                        aggr_func_list.add(new_aggr);
+                        break;
+                    }
+                }
+            }
         }
 
         }catch(Exception e){
@@ -150,15 +206,21 @@ public class EMF_Query{
 
     void output(){
     	System.out.println("public class DB_STRUCT {");
-        for(Structure temp : db_struct_list){
-            System.out.printf("\t"+temp.type + "\t" + temp.variable_name+";"+ "\n");
-        }
+        for(Structure temp : db_struct_list)
+            temp.output();
         System.out.println("}");
 
         System.out.println("public class MF_STRUCT {");
-        for (Structure i : mf_struct_list){
-            System.out.printf("\t"+i.type+"\t"+i.variable_name+";"+"\n");
-        }
+        for (Structure temp : mf_struct_list)
+            temp.output();
         System.out.println("}");
+
+
+
+        //some test of output
+        for (Structure temp : group_attr_list)
+            temp.output();
+        for (Aggr_func temp : aggr_func_list)
+            temp.output();
     }
 }
